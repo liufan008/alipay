@@ -5,17 +5,15 @@ import time,random
 from io import BytesIO
 from PIL import Image
 import json
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
-import http.cookiejar
+
 try:
     from httplib import BadStatusLine
 except ImportError:
     from http.client import BadStatusLine
 import logging
 
-
-log=logging.getLogger('lChat')
+from extend import Tuling
+logging.basicConfig(level=logging.INFO,format=('%(asctime)s:''%(message)s'),datefmt='%Y-%m-%d')  #
 class Login(object):
     def __init__(self):
         self.uid=''
@@ -26,16 +24,18 @@ class Login(object):
         self.wxuin=''
         self.basturl=''
         self.request=requests.Session()
-        self._13=str(int(time.time())*1000)
         self.DeviceID='e' + repr(random.random())[2:17]
         self.r=str(~int(time.time()))
         self.pass_ticket=''
         self.synckey=''
         self.syncurl=''
-        self.User={}
         self.Synckey=[]
+        self. _13 = str(int(time.time() * 1000)) + \
+                            str(random.random())[:5].replace('.', '')
         self.timen=str(int(time.time()))
         self.headers ={'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36'}
+        #自己的信息
+        self.User={}
         # 微信好友
         self.MemberCount=0
         self.MemberList={}
@@ -48,22 +48,18 @@ class Login(object):
         uid=re.match(pat,rsp.text)
         if uid.group(1)=='200':
             self.uid=uid.group(2)
-            print(self.uid)
             return True
         else:
             return False
-#获取到需要扫描登录的二维码
     def get_qrc(self):
         url='https://login.weixin.qq.com/qrcode/'+self.uid
         rep=self.request.get(url)
         imqr=Image.open(BytesIO(rep.content))
         imqr.show()
-#判断登录状态，一个uuid参数，上面获取过，一个时间戳，还有一个是r，抓包看了一下js，～new Date，对时间戳进行位运算
     def getLogin(self):
         url='https://login.wx2.qq.com/cgi-bin/mmwebwx-bin/login?loginicon=true&uuid='+self.uid+'&tip=0&r='+str(~int(time.time()))+'&_='+str(int(time.time()))
         rep=self.request.get(url,).text
         pat=r'window.code=(\d*);'
-        print(rep)
         paturl=r'window.redirect_uri="([\s\S]*)";'
         cod=re.match(pat,rep)
         if cod.group(1)=='200':
@@ -72,7 +68,6 @@ class Login(object):
             base=re.search(r'https://(.*?)/',back.group(1))
             self.basturl=base.group(1)
     def getLoginData(self):
-        print(self.url)
         rep=self.request.get(self.url+'&fun=new&version=v2&lang=zh_CN').text
         return rep
     def getLogPar(self,data):
@@ -80,12 +75,12 @@ class Login(object):
         self.wxsid=re.search(r'<wxsid>(.*?)</wxsid>',data).group(1)
         self.pass_ticket=re.search(r'<pass_ticket>(.*?)</pass_ticket>',data).group(1)
         self.wxuin=re.search(r'<wxuin>(.*?)</wxuin>',data).group(1)
-        print('**********************************************************************************************************')
+        print('*'*66)
         print('skey:%s',self.skey)
         print('wxsid:%s',self.wxsid)
         print('pass_ticket:%s',self.pass_ticket)
         print('wxuin:%s',self.wxuin)
-        print('**********************************************************************************************************')
+        print('*'*66)
     def webxinit(self):
         url='https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxinit?r='+self.r+'&lang=zh_CN&pass_ticket='+self.pass_ticket
         postdata='{"BaseRequest":{"Uin":"'+self.wxuin+'","Sid":"'+self.wxsid+'","Skey":"'+self.skey+'","DeviceID":"'+self.DeviceID+'"}}'
@@ -124,7 +119,7 @@ class Login(object):
             if retcode=='0':
                 break;
             else:
-                print('没找到')
+                pass
     def synccheck(self):
         url='https://'+self.syncurl+'/cgi-bin/mmwebwx-bin/synccheck'
         params = {
@@ -161,7 +156,6 @@ class Login(object):
         self.MemberCount=data['MemberCount']
         self.MemberList=data['MemberList']
 
-
     # def webwxbatchgetcontact(self):
     #     url='https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxbatchgetcontact?type=ex&r='+self.timen+'&lang=zh_CN&pass_ticket='+self.pass_ticket
     #     postdata='{"BaseRequest":{"Uin":'+self.wxuin+',"Sid":"'+self.wxsid+'","Skey":"'+self.skey+'","DeviceID":"'+self.DeviceID+'"},"Count":1,"List":[{"UserName":"'+self.User['UserName']+'","ChatRoomId":""}]}'
@@ -181,48 +175,58 @@ class Login(object):
         self.synckey=''
         for i in self.Synckey['List']:
             self.synckey+=str(i['Key'])+'_'+str(i['Val'])+'|'
-        if  self.AddMsgList[0]['Content']!='':
-            return True
-        else:
-            return False
-    def sendMessage(self,FromUserName,ToUserName):
-        url='https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsendmsg'
+    def sendMessage(self,FromUserName,ToUserName,msg='哈哈'):
+
+        url='https://'+self.basturl+'/cgi-bin/mmwebwx-bin/webwxsendmsg?lang=zh_CN&pass_ticket='+self.pass_ticket
+        self. _13 = str(int(time.time() * 1000)) + \
+                    str(random.random())[:5].replace('.', '')
         params = {
             'BaseRequest': '{"Uin":'+self.wxuin+',"Sid":"'+self.wxsid+'","Skey":"'+self.skey+'","DeviceID":"'+self.DeviceID+'"}',
             'Msg': {
                 "Type": 1,
-                "Content":'123',
+                "Content":msg,
                 "FromUserName": FromUserName,
                 "ToUserName": ToUserName,
                 "LocalID": self._13,
                 "ClientMsgId": self._13
-            }
+            },
+            'Scene':0
         }
-        print(FromUserName,ToUserName)
         postdata=json.dumps(params, ensure_ascii=False).encode('utf8')
         rep=self.request.post(url,data=postdata,headers=self.headers).content
-        print(rep)
+    def messageManger(self):
+        for it in self.AddMsgList:
+            if it['MsgType']==1:
+                print('收到一条新消息------------->',it['Content'])
+                for item in Tuling.openRobot(1,it['FromUserName'][1:-33],it['Content']):
+                    self.sendMessage(it['ToUserName'],it['FromUserName'],item['values']['text'])
+                    logging.info('机器人自动回复------------>{0}'.format(item['values']['text']))
+                    time.sleep(2)
+    def start(self):
+                logging.info("网页微信启动中");
+                self.getuid()
+                self.get_qrc()
+                logging.info("扫描二维码登录");
+                while(self.url==None):
+                        self.getLogin()
+                        time.sleep(3)
+                self.getLogPar(self.getLoginData())
+                logging.info("登录成功，初始化中");
+                self.webxinit()
+                logging.info("初始化成功，开启消息通知");
+                self.webwxstatusnotify()
+                logging.info("获取联系人信息");
+                self.webwxgetcontact()
+                logging.info("获取服务器地址");
+                self.testsynccheck()
+                logging.info("开始消息监听");
+                while True:
+                    [retcode,selector]=self.synccheck()
+                    if int(selector)>0:
+                        self.webwxsync()
+                        self.messageManger()
+
 
 if __name__ == '__main__':
-    a=Login()
-    if a.getuid():
-        a.get_qrc()
-        while(a.url==None):
-            a.getLogin()
-            time.sleep(3)
-        a.getLogPar(a.getLoginData())
-        data=a.webxinit()
-        a.webwxstatusnotify()
-        a.webwxgetcontact()
-        a.testsynccheck()
-    while True:
-            time.sleep(1)
-            [retcode,selector]=a.synccheck()
-            if int(selector)>0:
-               if a.webwxsync():
-                   print(a.AddMsgList[0]['FromUserName'],a.AddMsgList[0]['ToUserName'])
-
-
-
-
-
+    w=Login()
+    w.start()
