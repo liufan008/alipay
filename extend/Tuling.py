@@ -2,7 +2,7 @@ import requests
 import  json
 request=requests.Session();
 
-def openRobot(state=1,user='dawdawdwa',text='给我发十遍我爱你'):
+def openRobot(state=1,user='dawdawdwa',text='你好我是机器人'):
     url='http://openapi.tuling123.com/openapi/api/v2'
     postdata={
         'reqType':0,

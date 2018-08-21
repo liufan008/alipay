@@ -175,7 +175,7 @@ class Login(object):
         self.synckey=''
         for i in self.Synckey['List']:
             self.synckey+=str(i['Key'])+'_'+str(i['Val'])+'|'
-    def sendMessage(self,FromUserName,ToUserName,msg='哈哈'):
+    def sendMessage(self,FromUserName,ToUserName,msg='  '):
 
         url='https://'+self.basturl+'/cgi-bin/mmwebwx-bin/webwxsendmsg?lang=zh_CN&pass_ticket='+self.pass_ticket
         self. _13 = str(int(time.time() * 1000)) + \
@@ -198,7 +198,7 @@ class Login(object):
         for it in self.AddMsgList:
             if it['MsgType']==1:
                 print('收到一条新消息------------->',it['Content'])
-                for item in Tuling.openRobot(1,it['FromUserName'][1:-33],it['Content']):
+                for item in Tuling.openRobot(1,user=it['FromUserName'][15:-25],text=it['Content']):
                     self.sendMessage(it['ToUserName'],it['FromUserName'],item['values']['text'])
                     logging.info('机器人自动回复------------>{0}'.format(item['values']['text']))
                     time.sleep(2)
