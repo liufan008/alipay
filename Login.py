@@ -30,8 +30,7 @@ class Login(object):
         self.synckey=''
         self.syncurl=''
         self.Synckey=[]
-        self. _13 = str(int(time.time() * 1000)) + \
-                            str(random.random())[:5].replace('.', '')
+        self. _13 = str(int(round(time.time() * 1000)))
         self.timen=str(int(time.time()))
         self.headers ={'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36'}
         #自己的信息
@@ -178,8 +177,7 @@ class Login(object):
     def sendMessage(self,FromUserName,ToUserName,msg='  '):
 
         url='https://'+self.basturl+'/cgi-bin/mmwebwx-bin/webwxsendmsg?lang=zh_CN&pass_ticket='+self.pass_ticket
-        self. _13 = str(int(time.time() * 1000)) + \
-                    str(random.random())[:5].replace('.', '')
+        self. _13 = str(int(round(time.time() * 1000)))
         params = {
             'BaseRequest': '{"Uin":'+self.wxuin+',"Sid":"'+self.wxsid+'","Skey":"'+self.skey+'","DeviceID":"'+self.DeviceID+'"}',
             'Msg': {
