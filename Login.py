@@ -35,6 +35,12 @@ class Login(object):
         self.headers ={'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36'}
         #自己的信息
         self.User={}
+        # ********************************功能设置区********************************************
+        # 图灵机器人开关
+        self.tulinguser='123'
+        self.tuling=True
+        # ********************************功能设置区********************************************
+
         # 微信好友
         self.MemberCount=0
         self.MemberList={}
@@ -195,11 +201,31 @@ class Login(object):
     def messageManger(self):
         for it in self.AddMsgList:
             if it['MsgType']==1:
-                print('收到一条新消息------------->',it['Content'])
-                for item in Tuling.openRobot(1,user=it['FromUserName'][15:-25],text=it['Content']):
-                    self.sendMessage(it['ToUserName'],it['FromUserName'],item['values']['text'])
-                    logging.info('机器人自动回复------------>{0}'.format(item['values']['text']))
-                    time.sleep(2)
+                if it['Content']=='关闭' and it['ToUserName']=='filehelper'  or it['Content']=='':
+                    self.sendMessage(it['FromUserName'],it['ToUserName'],'机器人已关闭')
+                    self.tuling=False
+                elif it['Content']=='开启' and it['ToUserName']=='filehelper':
+                    self.sendMessage(it['FromUserName'],it['ToUserName'],'机器人已开启')
+                    self.tuling=True
+                if not self.tuling:
+                    return None
+                print(it['ToUserName'])
+                if len(it['ToUserName'])>27:
+                    self.tulinguser=it['ToUserName'][15:-20]
+                elif it['ToUserName']=='filehelper':
+                    self.tulinguser=it['ToUserName']
+                else:
+                    self.tulinguser=it['ToUserName'][3:-3]
+                print('user',self.User)
+                if it['ToUserName']=='filehelper' or it['ToUserName']==self.User['UserName']:
+                    for item in Tuling.openRobot(1,user=self.tulinguser,text=it['Content']):
+                            print('to'+it['ToUserName'],'from'+it['FromUserName'])
+                            if it['ToUserName']=='filehelper':
+                                self.sendMessage(it['FromUserName'],it['ToUserName'],'机器人回复:'+item['values']['text'])
+                            else:
+                                self.sendMessage(it['ToUserName'],it['FromUserName'],item['values']['text'])
+                            logging.info('机器人自动回复------------>{0}'.format(item['values']['text']))
+                            time.sleep(2)
     def start(self):
                 logging.info("网页微信启动中");
                 self.getuid()
